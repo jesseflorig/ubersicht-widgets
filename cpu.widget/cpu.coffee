@@ -1,35 +1,34 @@
-command: "./network.sh"
+command: "ps axro \"%cpu,ucomm,pid\" | awk 'FNR>1' | tail +1 | head -n 4 | sed -e 's/^[ ]*\\([0-9][0-9]*\\.[0-9][0-9]*\\)\\ /\\1\\%\\,/g' -e 's/\\ \\ *\\([0-9][0-9]*$\\)/\\,\\1/g'"
 
-refreshFrequency: 5000
+refreshFrequency: 2000
 
 style: """
-  bottom: 10px
+  bottom: 150px
   right: 10px
   color: #fff
   font-family: Helvetica Neue
-
 
   table
     border-collapse: collapse
     table-layout: fixed
 
-    &:before
-      content: 'network'
+    &:after
+      content: 'cpu'
       position: absolute
       right: 0
       top: -14px
       font-size: 10px
 
   td
-    background: rgba(#000, 0.2)
     border: 1px solid #fff
     font-size: 24px
     font-weight: 100
-    width: 200px
+    width: 120px
     overflow: hidden
     text-shadow: 0 0 1px rgba(#000, 0.5)
 
   .wrapper
+    background: rgba(#000, 0.2)
     padding: 4px 6px 4px 6px
     position: relative
 
@@ -41,38 +40,40 @@ style: """
     max-width: 100%
     color: #ddd
     text-overflow: ellipsis
+    text-shadow: none
 
-  .svc
+  .pid
     position: absolute
     top: 2px
     right: 2px
     font-size: 10px
     font-weight: normal
-    text-transform: capitalize
+
 """
 
-render: ->
-  """
-  <table class="network-info">
+
+render: -> """
+  <table>
     <tr>
       <td class='col1'></td>
       <td class='col2'></td>
+      <td class='col3'></td>
+      <td class='col4'></td>
     </tr>
   </table>
-  """
+"""
 
 update: (output, domEl) ->
-  nets = JSON.parse output
-  table     = $(domEl).find('.network-info')
+  processes = output.split('\n')
+  table     = $(domEl).find('table')
 
-  renderNet = (svc) -> """
-    <div class='wrapper'>
-      #{svc.ipaddress}<p>#{svc.macaddress}</p>
-      <div class='svc'>#{svc.name}</div>
-    </div>
-  """
+  renderProcess = (cpu, name, id) ->
+    "<div class='wrapper'>" +
+      "#{cpu}<p>#{name}</p>" +
+      "<div class='pid'>#{id}</div>" +
+    "</div>"
 
-  for svc, idx in nets.service
-    svc.ipaddress = if svc.ipaddress == '' then 'Not Connected' else svc.ipaddress
-    svc.macaddress = if svc.macaddress == '' then 'Not Connected' else svc.ipaddress
-    table.find(".col#{idx+1}").html renderNet(svc)
+  for process, i in processes
+    args = process.split(',')
+    table.find(".col#{i+1}").html renderProcess(args...)
+

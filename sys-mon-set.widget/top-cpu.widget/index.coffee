@@ -1,33 +1,23 @@
-command: "ps axo \"rss,pid,ucomm\" | sort -nr | tail +1 | head -n3 | awk '{printf \"%8.0f MB,%s,%s\\n\", $1/1024, $3, $2}'"
+command: "ps axro \"pid, %cpu, ucomm\" | awk 'FNR>1' | head -n 3 | awk '{ printf \"%5.1f%%,%s,%s\\n\", $2, $3, $1}'"
 
-refreshFrequency: 5000
+refreshFrequency: 2000
 
 style: """
-  bottom: 80px
-  right: 10px
+  bottom: 0px
+  left: 0px
   color: #fff
   font-family: Helvetica Neue
-
 
   table
     border-collapse: collapse
     table-layout: fixed
 
-    &:before
-      content: 'mem'
-      position: absolute
-      right: 0
-      top: -14px
-      font-size: 10px
-
   td
-    background: rgba(#000, 0.2)
-    border: 1px solid #fff
     font-size: 24px
     font-weight: 100
-    width: 120px
-    max-width: 120px
-    overflow: hidden
+    width: 100px
+    max-width: 100px
+    overflow: ellipsis
     text-shadow: 0 0 1px rgba(#000, 0.5)
 
   .wrapper
@@ -42,6 +32,7 @@ style: """
     max-width: 100%
     color: #ddd
     text-overflow: ellipsis
+    text-shadow: none
 
   .pid
     position: absolute
@@ -53,8 +44,7 @@ style: """
 """
 
 
-render: ->
-  """
+render: -> """
   <table>
     <tr>
       <td class='col1'></td>
@@ -71,7 +61,6 @@ update: (output, domEl) ->
   renderProcess = (cpu, name, id) ->
     "<div class='wrapper'>" +
       "#{cpu}<p>#{name}</p>" +
-      "<div class='pid'>#{id}</div>" +
     "</div>"
 
   for process, i in processes
