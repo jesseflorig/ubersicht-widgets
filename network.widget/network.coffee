@@ -14,7 +14,7 @@ style: """
     table-layout: fixed
 
     &:before
-      content: 'network'
+      content: 'net'
       position: absolute
       right: 0
       top: -14px
